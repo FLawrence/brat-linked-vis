@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Document Visualisation</title>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script src="lib/zoomcharts.js"></script>
+</head>
+
+<body>
+	<h1>Waiting to select graph...</h1>
+	<div id="demo" style="width: 100%; height: 90%;"></div>
+
+	<div id="graph-details">
+		<!--<label for="user">User ID</label><input type="text" id="user" name="user" value="flawrence" />
+		<label for="document">Document</label><input type="text" id="document" name="document" value="RRHS25-S17" />
+		<button id="update_graph">Update Graph</button>-->
+		<label for="document_list">Document</label><select id="document_list" name="document_list"></select>
+		<button id="refresh_document_list">Refresh</button>
+	</div>
+
+	<script>
+
+// Edit this array to contain all the links you want to search for on this graph
+	var required_links = [
+		'http://contextus.net/ontology/ontomedia/core/expression#has-subject-entity',
+		'http://contextus.net/ontology/ontomedia/core/expression#has-object-entity',
+		'http://contextus.net/ontology/ontomedia/core/expression#to',
+		'http://contextus.net/ontology/ontomedia/core/expression#from',
+		'http://contextus.net/ontology/ontomedia/ext/events/social#has-subject',
+	];
+
+// Edit this array to contain zoomcharts style objects for each link and node type
+	var styles = {
+		'http://contextus.net/ontology/ontomedia/core/expression#has-subject-entity' : { 'toDecoration': 'arrow', 'fillColor': 'black', 'label': 'has-subject-entity' },
+		'http://contextus.net/ontology/ontomedia/core/expression#has-object-entity' : { 'toDecoration': 'arrow', 'fillColor': 'black', 'label': 'has-object-entity' },
+		'http://contextus.net/ontology/ontomedia/core/expression#to' : { 'toDecoration': 'arrow', 'fillColor': 'yellow', 'label': 'to' },
+		'http://contextus.net/ontology/ontomedia/core/expression#from' : { 'toDecoration': 'arrow', 'fillColor': 'yellow', 'label': 'from' },
+		'http://contextus.net/ontology/ontomedia/ext/events/social#has-subject' : { 'toDecoration': 'arrow', 'fillColor': 'red', 'label': 'has-subject' },
+		'http://contextus.net/ontology/ontomedia/core/expression#Character' : { 'image': 'icons_character.png', 'fillColor': 'yellow', 'radius' : 10 },
+		'http://contextus.net/ontology/ontomedia/core/expression#Space' : { 'image': 'icons_space.png', 'fillColor': 'yellow', 'radius' : 10 },
+	};
+
+// Edit this array to contain a zoomcharts style object for anything else (currently this is mainly for events)
+	var default_style = { 'fillColor': 'green', 'radius' : 20 };
+
+// Edit this array to contain the query string, with __GRAPH__ and __LINK_TYPE__ as placeholders
+	var query_string = 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \
+		PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \
+		\
+		SELECT  DISTINCT * WHERE {GRAPH <__GRAPH__> \
+		{ \
+		\
+		?subj <__LINK_TYPE__> ?obj; \
+			rdf:type ?subj_type . \
+		\
+		OPTIONAL {?subj rdfs:label ?subj_label }. \
+		OPTIONAL {?subj <http://contextus.net/ontology/ontomedia/ext/common/trait#has-trait> [rdf:type <http://contextus.net /ontology/ontomedia/ext/common/trait#Name>; \
+		<http://contextus.net/ontology/ontomedia/ext/common/trait#has-name> ?subj_name]}. \
+		OPTIONAL {?subj <http://www.w3.org/2002/07/owl#sameAs> ?local_subj. \
+		?local_subj <http://contextus.net/ontology/ontomedia/core/expression#shadow-of> ?global_subj. \
+		?global_subj rdfs:label ?global_subj_label} \
+		\
+		?obj rdf:type ?obj_type . \
+		OPTIONAL {?obj rdfs:label ?obj_label }. \
+		OPTIONAL {?obj <http://contextus.net/ontology/ontomedia/ext/common/trait#has-trait> [rdf:type <http://contextus.net/ontology/ontomedia/ext/common/trait#Name>; \
+		<http://contextus.net/ontology/ontomedia/ext/common/trait#has-name> ?obj_name]}. \
+		OPTIONAL {?obj <http://www.w3.org/2002/07/owl#sameAs> ?local_obj. \
+		?local_obj <http://contextus.net/ontology/ontomedia/core/expression#shadow-of> ?global_obj. \
+		?global_obj rdfs:label ?global_obj_label} \
+		} \
+		}';
+
+// Edit this to point to your public SPARQL endpoint
+sparql_root = 'http://brat.kludge.co.uk/sparql/';
+
+// Don't edit anything past here
+	document_list_query_string = "SELECT DISTINCT ?g WHERE { GRAPH ?g { ?s ?p ?o } }";
+	var matchEventRegex = /E\d+/;
+	var chart = null;
+	var graph_url;
+	var data;
+
+	$( document ).ready(function() {
+		if (chart == null)
+		{
+			chart = new NetChart({
+	        	container: document.getElementById("demo"),
+	        	height: 600,
+	        });
+ 		}
+
+		$('#update_graph').click(function() {
+			update_graph();
+		});
+
+		$('#document_list').change(function () {
+			update_graph();
+		});
+
+		$('#refresh_document_list').click(function() {
+			refresh_document_list();
+		});
+	    refresh_document_list();
+	});
+
+	function refresh_document_list ( )
+	{
+		var option = $('<option></option>').attr("value", "wait").text("Please wait...");
+		$("#document_list").empty().append(option);
+
+		$.ajax({
+    		url: sparql_root,
+    		dataType: 'json',
+		    data: {
+        		query: document_list_query_string,
+		    },
+
+		    success: function( response ) {
+		    	$("#document_list").empty();
+		    	$.each(response.results.bindings, function (index, triple) {
+		    		var text_parts = triple.g.value.split("/");
+		    		var name = "User: " + text_parts[text_parts.length - 2] + " - Doc: " + text_parts[text_parts.length - 1];
+					var option = $('<option></option>').attr("value", triple.g.value).text(name);
+					$("#document_list").append(option);
+		    	});
+		    	$('#document_list').prop('selectedIndex', 0);
+		    	update_graph();
+			},
+		});
+	}
+
+	function update_graph ( )
+	{
+//		graph_url = graph_base_url + $('#user').val() + '/' + $('#document').val();
+		$("h1").text("Document graph for " + $('#document_list option:selected').text());
+		graph_url = $('#document_list').val();
+	    data = { "nodes": [], "links":[] };
+		prepareData(0);
+	}
+
+    function prepareData ( link_index )
+    {
+    	if (link_index >= required_links.length)
+    	{
+			chart = new NetChart({
+	        	container: document.getElementById("demo"),
+	        	height: 600,
+	        });
+    		chart.replaceData(data);
+    		return;
+    	}
+
+		$.ajax({
+    		url: sparql_root,
+    		dataType: 'json',
+		    data: {
+        		query: query_string.replace('__GRAPH__', graph_url).replace('__LINK_TYPE__', required_links[link_index]),
+		    },
+
+		    success: function( response ) {
+
+		    	// Find all the individual nodes first
+		    	$.each(response.results.bindings, function (index, triple) {
+		    		var subj_id = triple.subj.value;
+		    		var subj_type = triple.subj_type.value;
+		    		var subj_label = subj_id;
+		    		if ('value' in triple.subj_label) subj_label = triple.subj_label.value;
+		    		if ('value' in triple.subj_name) subj_label = triple.subj_name.value;
+					if ('value' in triple.global_subj) subj_id = triple.global_subj.value;
+					if ('value' in triple.global_subj_label) subj_label = triple.global_subj_label.value;
+					if (matchEventRegex.test(subj_label))
+					{
+					 	subj_label = subj_type.split("#")[1];
+					}
+
+		    		var obj_id = triple.obj.value;
+		    		var obj_type = triple.obj_type.value;
+		    		var obj_label = obj_id;
+		    		if ('value' in triple.obj_label) obj_label = triple.obj_label.value;
+		    		if ('value' in triple.obj_name) obj_label = triple.obj_name.value;
+					if ('value' in triple.global_obj) obj_id = triple.global_obj.value;
+					if ('value' in triple.global_obj_label) obj_label = triple.global_obj_label.value;
+					if (matchEventRegex.test(obj_label))
+					{
+						obj_label = obj_type.split("#")[1];
+					}
+
+		    		var foundS = 0;
+		    		var foundO = 0;
+		    		for (i = 0; i < data['nodes'].length; i++)
+		    		{
+		    			if (data['nodes'][i]['id'] == subj_id) foundS = 1;
+		    			if (data['nodes'][i]['id'] == obj_id) foundO = 1;
+		    		}
+
+		    		var subj_style = $.extend({'label': subj_label}, (styles[subj_type] == undefined) ? default_style : styles[subj_type]);
+					var obj_style = $.extend({'label': obj_label}, (styles[obj_type] == undefined) ? default_style : styles[obj_type]);
+
+		    		if (foundS == 0) data['nodes'].push({'id': subj_id, style: subj_style});
+		    		if (foundO == 0) data['nodes'].push({'id': obj_id, style: obj_style});
+		    	});
+
+		    	$.each(response.results.bindings, function (index, triple) {
+		    		var subj_id = triple.subj.value;
+					if ('value' in triple.global_subj) subj_id = triple.global_subj.value;
+
+		    		var obj_id = triple.obj.value;
+					if ('value' in triple.global_obj) obj_id = triple.global_obj.value;
+
+		    		data['links'].push({"id": required_links[link_index] + "_link" +  index.toString(), "from": subj_id, "to": obj_id, style: styles[required_links[link_index]]});
+		    	});
+
+	    		prepareData(link_index+1);
+    		}
+		});
+
+    }
+
+
+
+
+</script>
+</body>
+</html>
