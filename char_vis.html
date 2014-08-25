@@ -172,17 +172,41 @@ sparql_root = 'http://brat.kludge.co.uk/sparql/';
 /*				
 					if ('value' in query_data.bonded)
 					{
-		    			data['edges'].push({'data': {"id": "link_" + ref_id + '_' + query_data.bonded.value + '_' + query_data.bond_type.value, "source": ref_id, "target": query_data.bonded.value}});
+					    var link_id = "link_" + ref_id + '_' 
+		    			
+		    			if ('value' in query_data.bonded)
+		    			    link_id += query_data.bonded.value + '_'
+		    			
+		    			if ('value' in query_data.bond_type)    
+		    			    link_id += query_data.bond_type.value;
+					
+		    			data['edges'].push({'data': {"id": link_id, "source": ref_id, "target": query_data.bonded.value}});
 		    		}
 */
 					if ('value' in query_data.local)
 					{
-		    			data['edges'].push({'data': {"id": "link_" + ref_id + '_' + query_data.local.value + '_' + query_data.bond_type.value, "source": ref_id, "target": query_data.local.value}});
+		    			var link_id = "link_" + ref_id + '_' 
+		    			
+		    			if ('value' in query_data.local)
+		    			    link_id += query_data.local.value + '_'
+		    			
+		    			if ('value' in query_data.bond_type)    
+		    			    link_id += query_data.bond_type.value;
+		    			
+		    			data['edges'].push({'data': {"id": link_id, "source": ref_id, "target": query_data.local.value}});
 		    		}
 	
 					if ('value' in query_data.global)
-					{
-		    			data['edges'].push({'data': {"id": "link_" + ref_id + '_' + query_data.global.value + '_' + query_data.bond_type.value, "source": ref_id, "target": query_data.global.value}});
+					{		    			
+		    			var link_id = "link_" + ref_id + '_' 
+		    			
+		    			if ('value' in query_data.global)
+		    			    link_id += query_data.global.value + '_'
+		    			
+		    			if ('value' in query_data.bond_type)    
+		    			    link_id += query_data.bond_type.value;
+		    			
+		    			data['edges'].push({'data': {"id": link_id, "source": ref_id, "target": query_data.global.value}});
 		    		}	
 	    			    		
 
