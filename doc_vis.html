@@ -5,6 +5,7 @@
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>		
 	<script src="lib/cytoscape.js"></script>
 	<script src="lib/arbor.js"></script>
+	<script src="lib/brat-linked-vis.js"></script>
 </head>
 
 <body>
@@ -90,6 +91,7 @@
 			rdf:type ?subj_type . \
 		\
 		OPTIONAL {?subj rdfs:label ?subj_label }. \
+		OPTIONAL {?subj cnt:chars ?subj_text }. \
 		OPTIONAL {?subj <http://contextus.net/ontology/ontomedia/ext/common/trait#has-trait> [rdf:type <http://contextus.net /ontology/ontomedia/ext/common/trait#Name>; \
 		<http://contextus.net/ontology/ontomedia/ext/common/trait#has-name> ?subj_name]}. \
 		OPTIONAL {?subj <http://www.w3.org/2002/07/owl#sameAs> ?local_subj. \
@@ -98,6 +100,7 @@
 		\
 		?obj rdf:type ?obj_type . \
 		OPTIONAL {?obj rdfs:label ?obj_label }. \
+		OPTIONAL {?obj cnt:chars ?obj_text }. \
 		OPTIONAL {?obj <http://contextus.net/ontology/ontomedia/ext/common/trait#has-trait> [rdf:type <http://contextus.net/ontology/ontomedia/ext/common/trait#Name>; \
 		<http://contextus.net/ontology/ontomedia/ext/common/trait#has-name> ?obj_name]}. \
 		OPTIONAL {?obj <http://www.w3.org/2002/07/owl#sameAs> ?local_obj. \
@@ -110,7 +113,6 @@
 sparql_root = 'http://brat.kludge.co.uk/sparql/';
 
 // Don't edit anything past here
-	document_list_query_string = "SELECT DISTINCT ?g WHERE { GRAPH ?g { ?s ?p ?o } }";
 	var matchEventRegex = /E\d+/;
 	var chart = null;
 	var graph_url;
@@ -137,31 +139,10 @@ sparql_root = 'http://brat.kludge.co.uk/sparql/';
 		});
 	    refresh_document_list();
 	});
-
-	function refresh_document_list ( )
+	
+	function refresh_page()
 	{
-		var option = $('<option></option>').attr("value", "wait").text("Please wait...");
-		$("#document_list").empty().append(option);
-
-		$.ajax({
-    		url: sparql_root,
-    		dataType: 'json',
-		    data: {
-        		query: document_list_query_string,
-		    },
-
-		    success: function( response ) {
-		    	$("#document_list").empty();
-		    	$.each(response.results.bindings, function (index, triple) {
-		    		var text_parts = triple.g.value.split("/");
-		    		var name = "User: " + text_parts[text_parts.length - 2] + " - Doc: " + text_parts[text_parts.length - 1];
-					var option = $('<option></option>').attr("value", triple.g.value).text(name);
-					$("#document_list").append(option);
-		    	});
-		    	$('#document_list').prop('selectedIndex', 0);
-		    	update_graph();
-			},
-		});
+	    update_graph();
 	}
 
 	function update_graph ( )
@@ -205,6 +186,7 @@ sparql_root = 'http://brat.kludge.co.uk/sparql/';
 		    		var subj_type = triple.subj_type.value;
 		    		var subj_label = subj_id;
 		    		if ('value' in triple.subj_label) subj_label = triple.subj_label.value;
+		    		if ('value' in triple.subj_text) subj_label = triple.subj_text.value;
 		    		if ('value' in triple.subj_name) subj_label = triple.subj_name.value;
 					if ('value' in triple.global_subj) subj_id = triple.global_subj.value;
 					if ('value' in triple.global_subj_label) subj_label = triple.global_subj_label.value;
@@ -217,6 +199,7 @@ sparql_root = 'http://brat.kludge.co.uk/sparql/';
 		    		var obj_type = triple.obj_type.value;
 		    		var obj_label = obj_id;
 		    		if ('value' in triple.obj_label) obj_label = triple.obj_label.value;
+		    		if ('value' in triple.obj_text) subj_label = triple.obj_text.value;
 		    		if ('value' in triple.obj_name) obj_label = triple.obj_name.value;
 					if ('value' in triple.global_obj) obj_id = triple.global_obj.value;
 					if ('value' in triple.global_obj_label) obj_label = triple.global_obj_label.value;
