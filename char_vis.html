@@ -168,24 +168,8 @@ sparql_root = 'http://brat.kludge.co.uk/sparql/';
 
 		    	$.each(response.results.bindings, function (index, query_data) {
 		    		var ref_id = query_data.ref.value;
-
-                    /*
-					if ('value' in query_data.bonded)
-					{
-		    			data['links'].push({"id": "link_" + ref_id + '_' + query_data.bonded.value + '_' + query_data.bond_type.value, "from": ref_id, "to": query_data.bonded.value, style: {"label": query_data.bonded.value.split("#")[1] } });
-		    		}
-
-					if ('value' in query_data.local)
-					{
-		    			data['links'].push({"id": "link_" + ref_id + '_' + query_data.local.value + '_' + query_data.bond_type.value, "from": ref_id, "to": query_data.local.value, style: {"label": "Same As" }});
-		    		}
-
-					if ('value' in query_data.global)
-					{
-		    			data['links'].push({"id": "link_" + ref_id + '_' + query_data.global.value + '_' + query_data.bond_type.value, "from": ref_id, "to": query_data.global.value, style: {"label": "Shadow Of" } });
-		    		}
-		    		*/
 		    		
+					/*
 					if ('value' in query_data.bonded)
 					{
 		    			data['edges'].push({'data': {"id": "link_" + ref_id + '_' + query_data.bonded.value + '_' + query_data.bond_type.value, "source": ref_id, "target": query_data.bonded.value}});
@@ -199,18 +183,11 @@ sparql_root = 'http://brat.kludge.co.uk/sparql/';
 					if ('value' in query_data.global)
 					{
 		    			data['edges'].push({'data': {"id": "link_" + ref_id + '_' + query_data.global.value + '_' + query_data.bond_type.value, "source": ref_id, "target": query_data.global.value}});
-		    		}		    		
+		    		}	
+		    		*/	    		
 
 		    	});
 
-                /*
-				chart = new NetChart({
-		        	container: document.getElementById("demo"),
-	    	    	height: 600,
-	        	});
-	        	
-	    		chart.replaceData(data);
-	    		*/
 	    		chart = cytoscape({
                 container: document.getElementById('demo'),
                 });

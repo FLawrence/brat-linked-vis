@@ -13,6 +13,13 @@
 		<label for="document_list">Document</label><select id="document_list" name="document_list"></select>
 		<button id="refresh_document_list">Refresh</button>
 	</div>
+	
+	<form>
+
+	    <input type="submit" value="GO" id="query">
+	
+	</from>
+	
 
 <script>
 
@@ -32,14 +39,42 @@
 	function refresh_page()
 	{
 	    update_graph();
+	    
+	    $("h1").text("Document graph for " + $('#document_list option:selected').text());
+		graph_url = $('#document_list').val();
+	    
+	    
+	    var query_string = 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \
+                            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \
+                            SELECT DISTINCT ?event ?char1 ?char2 ?label ?name1 ?name2 WHERE {   \
+                                ?event a <http://contextus.net/ontology/ontomedia/ext/events/social#Conversational> ; \
+	                            <http://contextus.net/ontology/ontomedia/core/expression#has-subject-entity> ?char1;  \
+	                            <http://contextus.net/ontology/ontomedia/core/expression#has-object-entity> ?char2;  \
+	                            rdfs:label ?label . \
+                                ?char1 <http://www.w3.org/2002/07/owl#sameAs> ?char1_local1 .  \
+                                ?char1_norm1 <http://www.w3.org/2002/07/owl#sameAs> ?char1_local1 ;  \
+                                <http://contextus.net/ontology/ontomedia/ext/common/trait#has-trait> [a  <http://contextus.net/ontology/ontomedia/ext/common/trait#Female>] .  \
+                                ?char1 <http://www.w3.org/2002/07/owl#sameAs> ?char1_local2 .  \
+                                ?char1_norm2 <http://www.w3.org/2002/07/owl#sameAs> ?char1_local2 ;  \
+                                <http://contextus.net/ontology/ontomedia/ext/common/trait#has-trait> [ a <http://contextus.net/ontology/ontomedia/ext/common/trait#Name>; <http://contextus.net/ontology/ontomedia/ext/common/trait#has-name> ?name1] .   \
+                                ?char2 <http://www.w3.org/2002/07/owl#sameAs> ?char2_local1 .  \
+                                ?char2_norm1 <http://www.w3.org/2002/07/owl#sameAs> ?char2_local1 ;  \
+                                <http://contextus.net/ontology/ontomedia/ext/common/trait#has-trait> [a <http://contextus.net/ontology/ontomedia/ext/common/trait#Female>] .  \
+                                ?char2 <http://www.w3.org/2002/07/owl#sameAs> ?char2_local2 .  \
+?char2_norm2 <http://www.w3.org/2002/07/owl#sameAs> ?char2_local2 ;  \
+                                <http://contextus.net/ontology/ontomedia/ext/common/trait#has-trait> [ a <http://contextus.net/ontology/ontomedia/ext/common/trait#Name>; <http://contextus.net/ontology/ontomedia/ext/common/trait#has-name> ?name2] ;  \
+                                FILTER(?char1 != ?char2) .  \
+                                OPTIONAL { ?event <http://contextus.net/ontology/ontomedia/core/expression#refers-to> ?char3 .  \
+	                                ?char3 <http://contextus.net/ontology/ontomedia/ext/common/trait#has-trait> [a <http://contextus.net/ontology/ontomedia/ext/common/trait#Male>]. }  \
+                                OPTIONAL { ?event <http://contextus.net/ontology/ontomedia/core/expression#refers-to> ?group .  \
+	                                ?group <http://contextus.net/ontology/ontomedia/core/expression#contains> ?char4 .  \
+	                                ?char4 <http://contextus.net/ontology/ontomedia/ext/common/trait#has-trait> [a <http://contextus.net/ontology/ontomedia/ext/common/trait#Male>]. }  \
+                                FILTER( !bound( ?char3 ) )  \
+                                FILTER( !bound( ?char4 ) )  \
+                                } ORDER BY ?event'
+
 	}
 
-	function update_graph ( )
-	{
-		$("h1").text("Document graph for " + $('#document_list option:selected').text());
-		graph_url = $('#document_list').val();
-		
-	}
 	
 </script>
 
