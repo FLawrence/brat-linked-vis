@@ -169,22 +169,22 @@ sparql_root = 'http://brat.kludge.co.uk/sparql/';
 		    	$.each(response.results.bindings, function (index, query_data) {
 		    		var ref_id = query_data.ref.value;
 		    		
-				
+/*				
 					if ('value' in query_data.bonded)
 					{
 		    			data['edges'].push({'data': {"id": "link_" + ref_id + '_' + query_data.bonded.value + '_' + query_data.bond_type.value, "source": ref_id, "target": query_data.bonded.value}});
 		    		}
-/*
+
 					if ('value' in query_data.local)
 					{
 		    			data['edges'].push({'data': {"id": "link_" + ref_id + '_' + query_data.local.value + '_' + query_data.bond_type.value, "source": ref_id, "target": query_data.local.value}});
 		    		}
-
+*/	
 					if ('value' in query_data.global)
 					{
 		    			data['edges'].push({'data': {"id": "link_" + ref_id + '_' + query_data.global.value + '_' + query_data.bond_type.value, "source": ref_id, "target": query_data.global.value}});
 		    		}	
-*/		    			    		
+	    			    		
 
 		    	});
 
