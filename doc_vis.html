@@ -91,7 +91,7 @@
 			rdf:type ?subj_type . \
 		\
 		OPTIONAL {?subj rdfs:label ?subj_label }. \
-		OPTIONAL {?subj cnt:chars ?subj_text }. \
+		OPTIONAL {?subj <http://www.w3.org/2011/content#chars> ?subj_text }. \
 		OPTIONAL {?subj <http://contextus.net/ontology/ontomedia/ext/common/trait#has-trait> [rdf:type <http://contextus.net /ontology/ontomedia/ext/common/trait#Name>; \
 		<http://contextus.net/ontology/ontomedia/ext/common/trait#has-name> ?subj_name]}. \
 		OPTIONAL {?subj <http://www.w3.org/2002/07/owl#sameAs> ?local_subj. \
@@ -100,7 +100,7 @@
 		\
 		?obj rdf:type ?obj_type . \
 		OPTIONAL {?obj rdfs:label ?obj_label }. \
-		OPTIONAL {?obj cnt:chars ?obj_text }. \
+		OPTIONAL {?obj <http://www.w3.org/2011/content#chars> ?obj_text }. \
 		OPTIONAL {?obj <http://contextus.net/ontology/ontomedia/ext/common/trait#has-trait> [rdf:type <http://contextus.net/ontology/ontomedia/ext/common/trait#Name>; \
 		<http://contextus.net/ontology/ontomedia/ext/common/trait#has-name> ?obj_name]}. \
 		OPTIONAL {?obj <http://www.w3.org/2002/07/owl#sameAs> ?local_obj. \
