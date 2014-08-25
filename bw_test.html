@@ -15,10 +15,18 @@
 
 <script>
 
-	function refresh_page()
-	{
-	    update_graph();
-	}
+	$( document ).ready(function() {
+
+		$('#document_list').change(function () {
+			update_graph();
+		});
+
+		$('#refresh_document_list').click(function() {
+			refresh_document_list();
+		});
+		
+	    refresh_document_list();
+	});
 
 	function update_graph ( )
 	{
@@ -26,6 +34,7 @@
 		graph_url = $('#document_list').val();
 		
 	}
+	
 </script>
 
 </body>
