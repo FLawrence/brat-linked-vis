@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Bechdel-Wallace Test</title>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>		
+</head>
+
+<body>
+	<h1>Waiting to select graph...</h1>
+
+	<div id="graph-details">
+		<label for="document_list">Document</label><select id="document_list" name="document_list"></select>
+		<button id="refresh_document_list">Refresh</button>
+	</div>
+
+<script>
+
+	function refresh_page()
+	{
+	    update_graph();
+	}
+
+	function update_graph ( )
+	{
+		$("h1").text("Document graph for " + $('#document_list option:selected').text());
+		graph_url = $('#document_list').val();
+		
+	}
+</script>
+
+</body>
+</html>
