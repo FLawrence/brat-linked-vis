@@ -72,43 +72,43 @@
 		{
 			'name': 'has-subject-entity',
 			'type': 'edge',
-			'css': { 'target-arrow-shape': 'triangle', 'background-color': 'black', 'content': 'has-subject-entity' }
+			'css': { 'width': 2, 'target-arrow-shape': 'triangle', 'line-color': 'black', 'content': 'has-subject-entity' }
 		},
 		'http://contextus.net/ontology/ontomedia/core/expression#has-object-entity':
 		{
 			'name': 'has-object-entity',
 			'type': 'edge',
-		 	'css': { 'target-arrow-shape': 'triangle', 'background-color': 'black', 'content': 'has-object-entity' }
+		 	'css': { 'width': 2, 'target-arrow-shape': 'triangle', 'line-color': 'black', 'content': 'has-object-entity' }
 		},
 		'http://contextus.net/ontology/ontomedia/core/expression#to':
 		{
 			'name': 'to',
 			'type': 'edge',
-		 	'css': { 'target-arrow-shape': 'triangle', 'background-color': 'yellow', 'content': 'to' }
+		 	'css': { 'width': 2, 'target-arrow-shape': 'triangle', 'line-color': 'yellow', 'content': 'to' }
 		},
 		'http://contextus.net/ontology/ontomedia/core/expression#from':
 		{
 			'name': 'from',
 			'type': 'edge',
-			'css': { 'target-arrow-shape': 'triangle', 'background-color': 'yellow', 'content': 'from' }
+			'css': { 'width': 2, 'target-arrow-shape': 'triangle', 'line-color': 'yellow', 'content': 'from' }
 		},
 		'http://contextus.net/ontology/ontomedia/ext/events/social#has-subject':
 		{
 			'name': 'has-subject',
 			'type': 'edge',
-			'css': { 'target-arrow-shape': 'triangle', 'background-color': 'red', 'content': 'has-subject' }
+			'css': { 'width': 2, 'target-arrow-shape': 'triangle', 'line-color': 'red', 'content': 'has-subject' }
 		},
 		'http://contextus.net/ontology/ontomedia/core/expression#Character':
 		{
 			'name': 'character',
 			'type': 'node',
-			'css': { 'image': 'icons_character.png', 'background-color': 'yellow', 'radius' : 10, 'content': 'data(name)' }
+			'css': { 'background-fit': 'cover', 'background-image': 'lib/assets/icons_character.png', 'background-color': 'yellow', 'radius' : 10, 'content': 'data(name)' }
 		},
 		'http://contextus.net/ontology/ontomedia/core/expression#Space':
 		{
 			'name': 'space',
 			'type': 'node',
-			'css': { 'image': 'icons_space.png', 'background-color': 'yellow', 'radius' : 10, 'content': 'data(name)' }
+			'css': { 'background-fit': 'cover', 'background-image': 'lib/assets/icons_space.png', 'background-color': 'yellow', 'radius' : 10, 'content': 'data(name)' }
 		}
 	};
 
@@ -309,7 +309,10 @@ sparql_root = 'http://brat.kludge.co.uk/sparql/';
 
 		    		if(to_add)
 		    		{
-		    		    data['edges'].push({'data':{"id": required_links[link_index] + "_link" +  index.toString(), "source": subj_id, "target": obj_id, 'label': required_links[link_index].split('#')[1]}});
+		    			if (styles[required_links[link_index]] != undefined)
+		    		    	data['edges'].push({'data':{"id": required_links[link_index] + "_link" +  index.toString(), "source": subj_id, "target": obj_id, 'label': required_links[link_index].split('#')[1]}, 'classes': styles[required_links[link_index]]['name']});
+		    			else
+		    		    	data['edges'].push({'data':{"id": required_links[link_index] + "_link" +  index.toString(), "source": subj_id, "target": obj_id, 'label': required_links[link_index].split('#')[1]}});
                     }
 
 		    	});
