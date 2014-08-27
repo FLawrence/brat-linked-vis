@@ -30,11 +30,12 @@
 		});
 
 		$('#refresh_document_list').click(function() {
-			refresh_document_list();
+			refresh_document_list(sparqlroot);
 		});
 		
-	    refresh_document_list();
+	    refresh_document_list(sparqlroot);
 	});
+	
 	
 	function refresh_page()
 	{
