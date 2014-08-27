@@ -141,14 +141,21 @@ sparql_root = 'http://brat.kludge.co.uk/sparql/';
 		    	// Find all the individual nodes first
 		    	$.each(response.results.bindings, function (index, query_data) {
 		    		var ref_id = query_data.ref.value;
+		    		var global_id = query_data.global.value;
+		    		var local_id = query_data.local.value;
 		    		var ref_label = ref_id;
 		    		if ('value' in query_data.ref_label) ref_label = query_data.ref_label.value;
 		    		if ('value' in query_data.ref_name) ref_label = query_data.ref_name.value;
 
 		    		var foundR = 0;
+		    		var foundL = 0;
+		    		var foundG = 0;
+		    		
 		    		for (i = 0; i < data['nodes'].length; i++)
 		    		{
 		    			if (data['nodes'][i]['id'] == ref_id) foundR = 1;
+		    			if (data['nodes'][i]['id'] == local_id) foundL = 1;
+		    			if (data['nodes'][i]['id'] == global_id) foundG = 1;
 		    		}
 
 					var hash = reverse(query_data.g.value).hashCode();
@@ -162,7 +169,10 @@ sparql_root = 'http://brat.kludge.co.uk/sparql/';
 					*/
 					
 		    		//if (foundR == 0) data['nodes'].push({'id': ref_id, style: ref_style});
+		    		
 		    		if (foundR == 0) data['nodes'].push({'data': {'id': ref_id, name: query_data.g.value + "#" + ref_label}});
+		    		if (foundL == 0) data['nodes'].push({'data': {'id': local_id, name: local_id}});
+		    		if (foundG == 0) data['nodes'].push({'data': {'id': global_id, name: global_id}});
 		    		
 		    	});
 
