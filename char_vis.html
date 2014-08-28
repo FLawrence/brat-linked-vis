@@ -203,11 +203,11 @@ sparql_root = 'http://brat.kludge.co.uk/sparql/';
 					var blue = hash & 0x0000FF;
 
                     
-					var ref_style = $.extend({'name': 'query_data.g.value + "#" + ref_label', 'type': 'node', 'css': default_node);
+					var ref_style = $.extend({'name': 'query_data.g.value + "#" + ref_label', 'type':'node', 'css': default_node});
 					ref_style['css']['background-color'] = rgbToHex(red,green,blue);
 					
 					
-		    		//if (foundR == 0) data['nodes'].push({'id': ref_id, style: ref_style});
+		    		if (foundR == 0) data['nodes'].push({'id': ref_id, style: ref_style});
 		    		
 		    		if (foundR == 0) data['nodes'].push({'data': {'id': ref_id, name: query_data.g.value + "#" + ref_label}});
 		    		if (foundL == 0) data['nodes'].push({'data': {'id': local_id, name: local_id}});
