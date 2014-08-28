@@ -26,7 +26,7 @@
     ungrabifyWhileSimulating: true, // so you can't drag nodes during layout
 
     // forces used by arbor (use arbor default on undefined)
-    repulsion: undefined,
+    repulsion: 1500,
     stiffness: undefined,
     friction: undefined,
     gravity: true,
@@ -49,19 +49,58 @@
 };
 
 
-// Edit this array to contain zoomcharts style objects for each link and node type
+// Edit this array to contain cytoscape style objects for each link and node type
 	var styles = {
-		'http://contextus.net/ontology/ontomedia/core/expression#has-subject-entity' : { 'toDecoration': 'arrow', 'fillColor': 'black', 'label': 'has-subject-entity' },
-		'http://contextus.net/ontology/ontomedia/core/expression#has-object-entity' : { 'toDecoration': 'arrow', 'fillColor': 'black', 'label': 'has-object-entity' },
-		'http://contextus.net/ontology/ontomedia/core/expression#to' : { 'toDecoration': 'arrow', 'fillColor': 'yellow', 'label': 'to' },
-		'http://contextus.net/ontology/ontomedia/core/expression#from' : { 'toDecoration': 'arrow', 'fillColor': 'yellow', 'label': 'from' },
-		'http://contextus.net/ontology/ontomedia/ext/events/social#has-subject' : { 'toDecoration': 'arrow', 'fillColor': 'red', 'label': 'has-subject' },
-		'http://contextus.net/ontology/ontomedia/core/expression#Character' : { 'image': 'icons_character.png', 'fillColor': 'yellow', 'radius' : 10 },
-		'http://contextus.net/ontology/ontomedia/core/expression#Space' : { 'image': 'icons_space.png', 'fillColor': 'yellow', 'radius' : 10 },
+		'http://contextus.net/ontology/ontomedia/core/expression#has-subject-entity':
+		{
+			'name': 'has-subject-entity',
+			'type': 'edge',
+			'css': { 'width': 2, 'target-arrow-shape': 'triangle', 'target-arrow-color': 'black', 'line-color': 'black', 'content': 'has-subject-entity' }
+		},
+		'http://contextus.net/ontology/ontomedia/core/expression#has-object-entity':
+		{
+			'name': 'has-object-entity',
+			'type': 'edge',
+		 	'css': { 'width': 2, 'target-arrow-shape': 'triangle', 'target-arrow-color': 'black', 'line-color': 'black', 'content': 'has-object-entity' }
+		},
+		'http://contextus.net/ontology/ontomedia/core/expression#to':
+		{
+			'name': 'to',
+			'type': 'edge',
+		 	'css': { 'width': 2, 'target-arrow-shape': 'triangle', 'target-arrow-color': 'yellow', 'line-color': 'yellow', 'content': 'to' }
+		},
+		'http://contextus.net/ontology/ontomedia/core/expression#from':
+		{
+			'name': 'from',
+			'type': 'edge',
+			'css': { 'width': 2, 'target-arrow-shape': 'triangle', 'target-arrow-color': 'yellow', 'line-color': 'yellow', 'content': 'from' }
+		},
+		'http://contextus.net/ontology/ontomedia/ext/events/social#has-subject':
+		{
+			'name': 'has-subject',
+			'type': 'edge',
+			'css': { 'width': 2, 'target-arrow-shape': 'triangle', 'target-arrow-color': 'red', 'line-color': 'red', 'content': 'has-subject' }
+		},
+		'http://contextus.net/ontology/ontomedia/core/expression#Character':
+		{
+			'name': 'character',
+			'type': 'node',
+			'css': { 'background-fit': 'cover', 'background-image': 'lib/assets/icons_character.png', 'background-color': 'yellow', 'radius' : 10, 'content': 'data(name)' }
+		},
+		'http://contextus.net/ontology/ontomedia/core/expression#Space':
+		{
+			'name': 'space',
+			'type': 'node',
+			'css': { 'background-fit': 'cover', 'background-image': 'lib/assets/icons_space.png', 'background-color': 'yellow', 'radius' : 10, 'content': 'data(name)' }
+		}
 	};
 
 // Edit this array to contain a zoomcharts style object for anything else (currently this is mainly for events)
-	var default_style = { 'fillColor': 'green', 'radius' : 20 };
+//	var default_style = { 'fillColor': 'green', 'radius' : 20 };
+
+	var default_node = { 'content': 'data(name)', 'background-color': 'green', 'shape': 'circle', 'width' : 20 };
+	var default_edge = { 'content': 'data(label)', 'background-color': 'green', 'width' : 3 };
+
 
 // Edit this array to contain the query string, with __GRAPH__ and __LINK_TYPE__ as placeholders
 	var query_string = 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \
@@ -163,10 +202,10 @@ sparql_root = 'http://brat.kludge.co.uk/sparql/';
 					var green = (hash & 0x00FF00) >> 8;
 					var blue = hash & 0x0000FF;
 
-                    /*
-					var ref_style = $.extend({'label': query_data.g.value + "#" + ref_label}, default_style);
-					ref_style['fillColor'] = rgbToHex(red,green,blue);
-					*/
+                    
+					var ref_style = $.extend({'name': query_data.g.value + "#" + ref_label}, 'type': node, 'css': default_node);
+					ref_style['css']['background-color'] = rgbToHex(red,green,blue);
+					
 					
 		    		//if (foundR == 0) data['nodes'].push({'id': ref_id, style: ref_style});
 		    		
