@@ -203,7 +203,7 @@ sparql_root = 'http://brat.kludge.co.uk/sparql/';
 					var blue = hash & 0x0000FF;
 
                     
-					var ref_style = $.extend({'name': query_data.g.value + "#" + ref_label}, 'type': node, 'css': default_node);
+					var ref_style = $.extend({'name': 'query_data.g.value + "#" + ref_label', 'type': 'node', 'css': default_node);
 					ref_style['css']['background-color'] = rgbToHex(red,green,blue);
 					
 					
