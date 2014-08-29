@@ -26,7 +26,7 @@
     ungrabifyWhileSimulating: true, // so you can't drag nodes during layout
 
     // forces used by arbor (use arbor default on undefined)
-    repulsion: 1500,
+    repulsion: 2000,
     stiffness: undefined,
     friction: undefined,
     gravity: true,
@@ -51,35 +51,23 @@
 
 // Edit this array to contain cytoscape style objects for each link and node type
 	var styles = {
-		'http://contextus.net/ontology/ontomedia/core/expression#has-subject-entity':
+		'http://contextus.net/ontology/ontomedia/core/expression#is':
 		{
-			'name': 'has-subject-entity',
+			'name': 'is',
 			'type': 'edge',
-			'css': { 'width': 2, 'target-arrow-shape': 'triangle', 'target-arrow-color': 'black', 'line-color': 'black', 'content': 'has-subject-entity' }
+			'css': { 'width': 2, 'target-arrow-shape': 'triangle', 'target-arrow-color': 'black', 'line-color': 'black', 'content': 'is'}
 		},
-		'http://contextus.net/ontology/ontomedia/core/expression#has-object-entity':
+		'http://contextus.net/ontology/ontomedia/core/expression#shadow-of':
 		{
-			'name': 'has-object-entity',
+			'name': 'shadow-of',
 			'type': 'edge',
-		 	'css': { 'width': 2, 'target-arrow-shape': 'triangle', 'target-arrow-color': 'black', 'line-color': 'black', 'content': 'has-object-entity' }
+		 	'css': { 'width': 2, 'target-arrow-shape': 'triangle', 'target-arrow-color': 'black', 'line-color': 'black', 'content': 'shadow of' }
 		},
-		'http://contextus.net/ontology/ontomedia/core/expression#to':
+		'http://www.w3.org/2002/07/owl#sameAs':
 		{
-			'name': 'to',
+			'name': 'sameAs',
 			'type': 'edge',
-		 	'css': { 'width': 2, 'target-arrow-shape': 'triangle', 'target-arrow-color': 'yellow', 'line-color': 'yellow', 'content': 'to' }
-		},
-		'http://contextus.net/ontology/ontomedia/core/expression#from':
-		{
-			'name': 'from',
-			'type': 'edge',
-			'css': { 'width': 2, 'target-arrow-shape': 'triangle', 'target-arrow-color': 'yellow', 'line-color': 'yellow', 'content': 'from' }
-		},
-		'http://contextus.net/ontology/ontomedia/ext/events/social#has-subject':
-		{
-			'name': 'has-subject',
-			'type': 'edge',
-			'css': { 'width': 2, 'target-arrow-shape': 'triangle', 'target-arrow-color': 'red', 'line-color': 'red', 'content': 'has-subject' }
+			'css': { 'width': 2, 'target-arrow-shape': 'triangle', 'target-arrow-color': 'red', 'line-color': 'red', 'content': 'same as' }
 		},
 		'http://contextus.net/ontology/ontomedia/core/expression#Character':
 		{
@@ -98,8 +86,8 @@
 // Edit this array to contain a zoomcharts style object for anything else (currently this is mainly for events)
 //	var default_style = { 'fillColor': 'green', 'radius' : 20 };
 
-	var default_node = { 'content': 'data(name)', 'background-color': 'green', 'shape': 'circle', 'width' : 20 };
-	var default_edge = { 'content': 'data(label)', 'background-color': 'green', 'width' : 3 };
+	var default_node = { 'content': 'data(name)', 'background-color': 'green', 'shape': 'circle', 'width' : 15 };
+	var default_edge = { 'content': 'data(label)', 'background-color': 'black', 'width' : 3 };
 
 
 // Edit this array to contain the query string, with __GRAPH__ and __LINK_TYPE__ as placeholders
@@ -203,11 +191,11 @@ sparql_root = 'http://brat.kludge.co.uk/sparql/';
 					var blue = hash & 0x0000FF;
 
                     
-					var ref_style = $.extend({'name': 'query_data.g.value + "#" + ref_label', 'type':'node', 'css': default_node});
-					ref_style['css']['background-color'] = rgbToHex(red,green,blue);
+					//var ref_style = $.extend({'name': 'query_data.g.value + "#" + ref_label', 'type':'node', 'css': default_node});
+					//ref_style['css']['background-color'] = rgbToHex(red,green,blue);
 					
 					
-		    		if (foundR == 0) data['nodes'].push({'id': ref_id, style: ref_style});
+		    		//if (foundR == 0) data['nodes'].push({'id': ref_id, style: ref_style});
 		    		
 		    		if (foundR == 0) data['nodes'].push({'data': {'id': ref_id, name: query_data.g.value + "#" + ref_label}});
 		    		if (foundL == 0) data['nodes'].push({'data': {'id': local_id, name: local_id}});
@@ -264,6 +252,13 @@ sparql_root = 'http://brat.kludge.co.uk/sparql/';
 	    		chart = cytoscape({
                 container: document.getElementById('demo'),
                 });
+                chart.style().selector('edge').css(default_edge);
+    		    chart.style().selector('node').css(default_node);
+                $.each(styles, function (style_match, style_details)
+                 {
+                    selector = style_details['type'] + '.' + style_details['name'];
+                    chart.style().selector(selector).css(style_details['css']);
+                 });
     		    chart.add(data);
     		    chart.layout(options);
     		}
