@@ -5,12 +5,16 @@
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 	<script src="lib/cytoscape.js"></script>
 	<script src="lib/arbor.js"></script>
+	<script src="lib/brat-linked-vis.js"></script>	
 </head>
 
 <body>
 	<h1>Characters</h1>
-	<div id="demo" style="width: 100%; height: 900px;"></div>
-
+	<div>
+    <label for="document_list">Document</label><select id="document_list" name="document_list"></select>
+	<button id="refresh_document_list">Refresh</button>
+	</div>
+	<div id="demo" style="width: 100%; height: 500px; border: 1px black"></div>
 	<script>
 
 	options = {
@@ -92,7 +96,7 @@
 			'name': 'sameAs',
 			'type': 'edge',
 			'len': 5,
-			'css': { 'width': 1, 'target-arrow-shape': 'triangle', 'target-arrow-color': 'black', 'line-color': 'black', 'content': '' }
+			'css': { 'width': 1, 'target-arrow-shape': 'triangle', 'target-arrow-color': 'black', 'line-color': 'green', 'content': '' }
 		},
 		'http://contextus.net/ontology/ontomedia/core/expression#Character':
 		{
@@ -106,7 +110,7 @@
 			'name': 'archetype',
 			'type': 'node',
 			'weight': 0.2,
-			'css': { 'background-fit': 'cover', 'background-image': 'lib/assets/icons_character.png', 'background-color': 'black', 'width' : 25, 'height': 25 , 'content': 'data(name)' }
+			'css': { 'background-fit': 'cover', 'background-color': 'black', 'width' : 25, 'height': 25, 'background-image': 'lib/assets/icons_character.png', 'content': 'data(name)' }
 		},
 	};
 
@@ -115,24 +119,7 @@
 
 	var default_node = { 'content': 'data(name)', 'background-color': 'green', 'shape': 'circle', 'width' : 5, 'height': 5 };
 	var default_edge = { 'content': 'data(label)', 'background-color': 'black', 'width' : 1 };
-
-
-// Edit this array to contain the query string, with __GRAPH__ and __LINK_TYPE__ as placeholders
-	var query_string = 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \
-		PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> \
-		SELECT  DISTINCT * WHERE { GRAPH ?g { \
-		?ref rdf:type <http://contextus.net/ontology/ontomedia/core/expression#Character> \
-		OPTIONAL {?ref rdfs:label ?ref_label }. \
-		OPTIONAL {?ref <http://www.w3.org/2002/07/owl#sameAs> ?local. \
-		?local <http://contextus.net/ontology/ontomedia/core/expression#shadow-of> ?global}. \
-		OPTIONAL {?ref <http://contextus.net/ontology/ontomedia/ext/common/trait#has-trait> [rdf:type <http://contextus.net/ontology/ontomedia/ext/common/trait#Name>; \
-		<http://contextus.net/ontology/ontomedia/ext/common/trait#has-name> ?ref_name]}. \
-		OPTIONAL {?ref <http://contextus.net/ontology/ontomedia/ext/common/trait#has-trait> [rdf:type <http://contextus.net/ontology/ontomedia/ext/common/trait#link>; \
-		<http://contextus.net/ontology/ontomedia/ext/common/being#has-bond> [rdf:type ?bond_type; ?bond_rel ?bonded]] \
-		}. \
-		}}';
-		
-//MINUS {_:blankNode <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?bonded}		
+	
 
 // Edit this to point to your public SPARQL endpoint
 sparql_root = 'http://brat.kludge.co.uk/sparql/';
@@ -154,8 +141,22 @@ sparql_root = 'http://brat.kludge.co.uk/sparql/';
             });
  		}
 
-		update_graph();
+        $('#refresh_document_list').click(function() {
+			refresh_document_list(sparql_root, true);
+		});
+		
+	    refresh_document_list(sparql_root, true);
+	    
 	});
+	
+	$('#document_list').change(function () {
+		refresh_page();
+	});
+	
+	function refresh_page()
+	{
+	    update_graph();
+	}	
 
 	String.prototype.hashCode = function(){
 	    var hash = 0;
@@ -197,8 +198,34 @@ sparql_root = 'http://brat.kludge.co.uk/sparql/';
 
 	function update_graph ( )
 	{
+	    graph_url = $('#document_list').val();
+	    
+	    // Edit this array to contain the query string, with __GRAPH__ and __LINK_TYPE__ as placeholders
+	var query_string = 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> \
+		PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> ';
+		
+		if(graph_url == '')
+            query_string += 'SELECT  DISTINCT * WHERE { GRAPH ?g {';
+        else
+            query_string += 'SELECT  DISTINCT * WHERE {GRAPH <__GRAPH__> {';
+
+		query_string += '?ref rdf:type <http://contextus.net/ontology/ontomedia/core/expression#Character> \
+		OPTIONAL {?ref rdfs:label ?ref_label }. \
+		OPTIONAL {?ref <http://www.w3.org/2002/07/owl#sameAs> ?local. \
+		?local <http://contextus.net/ontology/ontomedia/core/expression#shadow-of> ?global}. \
+		OPTIONAL {?ref <http://contextus.net/ontology/ontomedia/ext/common/trait#has-trait> [rdf:type <http://contextus.net/ontology/ontomedia/ext/common/trait#Name>; \
+		<http://contextus.net/ontology/ontomedia/ext/common/trait#has-name> ?ref_name]}. \
+		OPTIONAL {?ref <http://contextus.net/ontology/ontomedia/ext/common/trait#has-trait> [rdf:type <http://contextus.net/ontology/ontomedia/ext/common/trait#link>; \
+		<http://contextus.net/ontology/ontomedia/ext/common/being#has-bond> [rdf:type ?bond_type; ?bond_rel ?bonded]] \
+		}. \
+		}}';
+		
+//MINUS {_:blankNode <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?bonded}	
+	    
 	    data = { "nodes": [], "edges":[] };
 	    color_classes = {};
+	    
+	    query_string = query_string.replace('__GRAPH__', graph_url)
 
 		$.ajax({
     		url: sparql_root,
@@ -224,7 +251,7 @@ sparql_root = 'http://brat.kludge.co.uk/sparql/';
 		    		    ref_label = parts[parts.length-1];
 		    		} 
 		    		if ('value' in query_data.ref_label) ref_label = query_data.ref_label.value;
-		    		if ('value' in query_data.ref_name) ref_label = query_data.ref_name.value;
+		    		//if ('value' in query_data.ref_name) ref_label = query_data.ref_name.value;
 		    		
 		    		var local_label = ref_label;
 		    		var global_label = ref_label;
@@ -262,22 +289,20 @@ sparql_root = 'http://brat.kludge.co.uk/sparql/';
 		    			if (data['nodes'][i]['id'] == global_id) foundG = 1;
 		    		}
 
-                    color = colorFromURI(query_data.g.value);
+                    if (query_data.g)
+                        color = colorFromURI(query_data.g.value);
+                    else
+                        color = colorFromURI('graph_url')
+                        
                     colorClass = 'color_' + color;					
 					color_classes[colorClass] = {'background-color': '#' + color, 'background-fit': 'cover', 'height': 10, 'width': 10, 'content': 'data(name)' }
 					
 		    		//if (foundR == 0) data['nodes'].push({'id': ref_id, style: ref_style});
 		    		
-		    		if (foundR == 0) data['nodes'].push({'data': {'id': ref_id, 'name': ref_label}, 'classes': colorClass, 'weight': 1});
-		    		if (foundL == 0) data['nodes'].push({'data': {'id': local_id, 'name': local_label}, 'classes': colorClass, 'weight': 0.8});
-		    		if (foundG == 0) data['nodes'].push({'data': {'id': global_id, 'name': global_id + '!'}, 'classes': styles['archetype']['name']});
-
-
-/*		    		
-		    		if (foundR == 0) data['nodes'].push({'data': {'id': ref_id, 'name': ref_label}, 'classes': [styles['http://contextus.net/ontology/ontomedia/core/expression#Character']['name'], colorClass]});
-		    		if (foundL == 0) data['nodes'].push({'data': {'id': local_id, 'name': local_label}, 'classes': [styles['Character_local']['name'], colorClass]});
-		    		if (foundG == 0) data['nodes'].push({'data': {'id': global_id, 'name': global_label}, 'classes': [styles['Character_global']['name'], colorClass]});
-*/		    		
+		    		if (foundR == 0 && ref_label != undefined && ref_id.indexOf("shared") == -1) data['nodes'].push({'data': {'id': ref_id, 'name': ref_label}, 'classes': colorClass, 'weight': 1});
+		    		if (foundL == 0 && local_id != undefined) data['nodes'].push({'data': {'id': local_id, 'name': local_label}, 'classes': colorClass, 'weight': 0.8});
+		    		if (foundG == 0 && global_id != undefined) data['nodes'].push({'data': {'id': global_id, 'name': global_label}, 'classes': styles['archetype']['name']});
+	    		
 		    	});
 
 		    	$.each(response.results.bindings, function (index, query_data) {
@@ -316,9 +341,9 @@ sparql_root = 'http://brat.kludge.co.uk/sparql/';
 		    			    data['edges'].push({'data': {"id": link_id, "source": ref_id, "target": query_data.local.value}});
 		    		}
 /*	*/
-					if ('value' in query_data.global)
+					if ('value' in query_data.global && 'value' in query_data.local)
 					{		    			
-		    			var link_id = "link_" + ref_id + '_' 
+		    			var link_id = "link_" + query_data.local.value + '_' 
 		    			
 		    			if ('value' in query_data.global)
 		    			    link_id += query_data.global.value + '_'
@@ -327,12 +352,16 @@ sparql_root = 'http://brat.kludge.co.uk/sparql/';
 		    			    link_id += query_data.bond_type.value;
 		    			
 		    			if (styles['http://contextus.net/ontology/ontomedia/core/expression#shadow-of'] != undefined)
-		    		    	data['edges'].push({'data': {"id": link_id, "source": ref_id, "target": query_data.global.value}, 'classes': styles['http://contextus.net/ontology/ontomedia/core/expression#shadow-of']['name']});
+		    		    	data['edges'].push({'data': {"id": link_id, "source": query_data.local.value, "target": query_data.global.value}, 'classes': styles['http://contextus.net/ontology/ontomedia/core/expression#shadow-of']['name']});
 		    			else
-		    			    data['edges'].push({'data': {"id": link_id, "source": ref_id, "target": query_data.global.value}});
+		    			    data['edges'].push({'data': {"id": link_id, "source": query_data.local.value, "target": query_data.global.value}});
 		    			
 		    	        
 		    		}	
+		    		
+		    		
+		    		
+
 
 
 	    			    		
