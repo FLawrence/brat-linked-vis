@@ -263,25 +263,25 @@ sparql_root = 'http://brat.kludge.co.uk/sparql/';
 		    		var subj_style = $.extend({'label': subj_label}, (styles[subj_type] == undefined) ? default_style : styles[subj_type]);
 					var obj_style = $.extend({'label': obj_label}, (styles[obj_type] == undefined) ? default_style : styles[obj_type]);
 
-		    		if (foundS == 0) data['nodes'].push({'id': subj_id, style: subj_style});
-		    		if (foundO == 0) data['nodes'].push({'id': obj_id, style: obj_style});
+		    		if (foundS == 0) data['nodes'].push({'id': subj_id, 'style': subj_style});
+		    		if (foundO == 0) data['nodes'].push({'id': obj_id, 'style': obj_style});
 
 		    		*/
 
 		    		if (foundS == 0)
 		    		{
 		    			if (styles[subj_type] != undefined)
-		    				data['nodes'].push({'data': {'id': subj_id, name: subj_label}, 'classes': styles[subj_type]['name']});
+		    				data['nodes'].push({'data': {'id': subj_id, 'name': subj_label}, 'classes': styles[subj_type]['name']});
 		    			else
-		    				data['nodes'].push({'data': {'id': subj_id, name: subj_label}});
+		    				data['nodes'].push({'data': {'id': subj_id, 'name': subj_label}});
 		    		}
 
 		    		if (foundO == 0)
 	    			{
 		    			if (styles[obj_type] != undefined)
-		    				data['nodes'].push({'data': {'id': obj_id, name: obj_label}, 'classes': styles[obj_type]['name']});
+		    				data['nodes'].push({'data': {'id': obj_id, 'name': obj_label}, 'classes': styles[obj_type]['name']});
 		    			else
-		    				data['nodes'].push({'data': {'id': obj_id, name: obj_label}});
+		    				data['nodes'].push({'data': {'id': obj_id, 'name': obj_label}});
 	    			}
 
 		    	});
