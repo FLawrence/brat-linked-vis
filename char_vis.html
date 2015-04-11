@@ -30,7 +30,7 @@
     ungrabifyWhileSimulating: true, // so you can't drag nodes during layout
 
     // forces used by arbor (use arbor default on undefined)
-    repulsion: 1000,
+    repulsion: 3000,
     stiffness: 1000,
     friction: 0.2,
     gravity: false,
@@ -73,11 +73,17 @@
 
 // Edit this array to contain cytoscape style objects for each link and node type
 	var styles = {
-		'http://contextus.net/ontology/ontomedia/ext/common/being#has-bond':
+		'http://contextus.net/ontology/ontomedia/ext/common/being#is-relation-of':
 		{
-			'name': 'is',
+			'name': 'related-to',
 			'type': 'edge',
-			'css': { 'width': 1, 'target-arrow-shape': 'triangle', 'target-arrow-color': 'black', 'line-color': 'black', 'content': ''}
+			'css': { 'width': 1, 'target-arrow-shape': 'triangle', 'target-arrow-color': 'black', 'line-color': 'blue', 'content': ''}
+		},
+		'http://contextus.net/ontology/ontomedia/ext/common/being#is-linked-to':
+		{
+			'name': 'related-to',
+			'type': 'edge',
+			'css': { 'width': 1, 'target-arrow-shape': 'triangle', 'target-arrow-color': 'black', 'line-color': 'blue', 'content': ''}
 		},
 		'http://contextus.net/ontology/ontomedia/core/expression#shadow-of':
 		{
@@ -109,6 +115,7 @@
 		{
 			'name': 'archetype',
 			'type': 'node',
+			'len':1000,
 			'weight': 0.2,
 			'css': { 'background-fit': 'cover', 'background-color': 'black', 'width' : 25, 'height': 25, 'background-image': 'lib/assets/icons_character.png', 'content': 'data(name)' }
 		},
@@ -118,7 +125,7 @@
 //	var default_style = { 'fillColor': 'green', 'radius' : 20 };
 
 	var default_node = { 'content': 'data(name)', 'background-color': 'green', 'shape': 'circle', 'width' : 5, 'height': 5 };
-	var default_edge = { 'content': 'data(label)', 'background-color': 'black', 'width' : 1 };
+	var default_edge = { 'content': 'data(name)', 'background-color': 'black', 'width' : 1};
 	
 
 // Edit this to point to your public SPARQL endpoint
@@ -236,7 +243,7 @@ sparql_root = 'http://brat.kludge.co.uk/sparql/';
 
 		    success: function( response ) {
 
-		    	// Find all the individual nodes first
+		    	// Find all the individual NODES first
 		    	$.each(response.results.bindings, function (index, query_data) {
 		    	
 		    		var ref_id = query_data.ref.value;
@@ -299,69 +306,161 @@ sparql_root = 'http://brat.kludge.co.uk/sparql/';
 					
 		    		//if (foundR == 0) data['nodes'].push({'id': ref_id, style: ref_style});
 		    		
-		    		if (foundR == 0 && ref_label != undefined && ref_id.indexOf("shared") == -1) data['nodes'].push({'data': {'id': ref_id, 'name': ref_label}, 'classes': colorClass, 'weight': 1});
-		    		if (foundL == 0 && local_id != undefined) data['nodes'].push({'data': {'id': local_id, 'name': local_label}, 'classes': colorClass, 'weight': 0.8});
+		    		if (foundR == 0 && ref_label != undefined && ref_id.indexOf("shared") == -1) data['nodes'].push({'data': {'id': ref_id, 'name': ref_label}, 'classes': colorClass, 'weight': 1, 'len':500});
+		    		if (foundL == 0 && local_id != undefined) data['nodes'].push({'data': {'id': local_id, 'name': local_label}, 'classes': colorClass, 'weight': 0.8, 'len':500});
 		    		if (foundG == 0 && global_id != undefined) data['nodes'].push({'data': {'id': global_id, 'name': global_label}, 'classes': styles['archetype']['name']});
 	    		
 		    	});
-
+		    	
+		    	
+                // Find all the EDGES 
 		    	$.each(response.results.bindings, function (index, query_data) {
 		    		var ref_id = query_data.ref.value;
+		    		var link_style = query_data.bond_type.value;
 		    		
-/*				
-					if ('value' in query_data.bonded)
-					{
-					    var link_id = "link_" + ref_id + '_' 
-		    			
+		    		var link_label = '';
+		    		var link_target = '';
+		    		var link_source = '';
+		    		var has_edge = false;
+		    		
+		    		   
+					// BONDS
+					if ('value' in query_data.bonded && (query_data.bond_rel.value != 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type') && (query_data.bond_type.value != 'http://contextus.net/ontology/ontomedia/ext/common/being#Pledge'))
+					{ 
+		    			if(query_data.bond_rel.value)
+                        {
+                            var parts = (query_data.bond_rel.value).split('#');
+                            link_label = parts[parts.length-1];		
+                        }
+                        else
+                        {
+                            var parts = (query_data.bond_type.value).split('#');
+                            link_label = parts[parts.length-1];	
+                        }
+                        
+                        var link_id = "link_" + ref_id + '_'; 
+                           
 		    			if ('value' in query_data.bonded)
-		    			    link_id += query_data.bonded.value + '_'
+		    			    link_id += query_data.bonded.value + '_';
 		    			
 		    			if ('value' in query_data.bond_type)    
 		    			    link_id += query_data.bond_type.value;
 					
-					    if (styles[required_links['http://contextus.net/ontology/ontomedia/ext/common/being#has-bond']] != undefined)
-		    		    	data['edges'].push({'data': {"id": link_id, "source": ref_id, "target": query_data.bonded.value},'classes': styles[required_links['http://contextus.net/ontology/ontomedia/ext/common/being#has-bond']]['name']});
-		    			else
-                            data['edges'].push({'data': {"id": link_id, "source": ref_id, "target": query_data.bonded.value}});
+					    link_target = query_data.bonded.value;
+					    link_source = ref_id;
+					    has_edge = true;
+					    link_style = query_data.bond_rel.value
+
+
+		    		
+		    		var foundE = 0;
+		    		
+		    		
+		    		for (i = 0; i < data['edges'].length; i++)
+		    		{
+		    			if (data['edges'][i]['id'] == link_id) foundE = 1;
+
 		    		}
-*/
+
+                    if(foundE == 0 && has_edge)
+                    {
+                        if (styles[link_style] != undefined)
+		    		    	data['edges'].push({'data': {"id": link_id, "name":link_label, "source": link_source, "target": link_target},'classes': styles[link_style]['name']});
+		    			else
+                            data['edges'].push({'data': {"id": link_id, "name":link_label, "source": link_source, "target": link_target}});
+                    }
+					
+		    		}
+
+
+                    // NORMALISED LINK
 					if ('value' in query_data.local)
 					{
-		    			var link_id = "link_" + ref_id + '_' 
+//		    			var link_id = "link_" + ref_id + '_' 
+		    			
+		    			link_style = 'http://www.w3.org/2002/07/owl#sameAs';
+		    			link_target = query_data.local.value;
+		    			link_source = ref_id;
+		    			has_edge = true;
+		    			link_label = 'same as';
+		    			
+		    			var link_id = "link_" + ref_id + '_'; 
 		    			
 		    			if ('value' in query_data.local)
-		    			    link_id += query_data.local.value + '_'
+		    			    link_id += query_data.local.value + '_sameAs'
 		    			
-		    			if ('value' in query_data.bond_type)    
-		    			    link_id += query_data.bond_type.value;
-		    			
+		    			//if ('value' in query_data.bond_type)    
+		    			//    link_id += query_data.bond_type.value;
+/*		    			    
 		    			if (styles['http://www.w3.org/2002/07/owl#sameAs'] != undefined)
-		    		    	data['edges'].push({'data': {"id": link_id, "source": ref_id, "target": query_data.local.value}, 'classes': styles['http://www.w3.org/2002/07/owl#sameAs']['name']});
+		    		    	data['edges'].push({'data': {"id": link_id, "name":"Same As" , "source": ref_id, "target": query_data.local.value}, 'classes': styles['http://www.w3.org/2002/07/owl#sameAs']['name']});
 		    			else
 		    			    data['edges'].push({'data': {"id": link_id, "source": ref_id, "target": query_data.local.value}});
+*/		    		
+
+		    		var foundE = 0;
+		    		
+		    		
+		    		for (i = 0; i < data['edges'].length; i++)
+		    		{
+		    			if (data['edges'][i]['id'] == link_id) foundE = 1;
+
 		    		}
-/*	*/
-					if ('value' in query_data.global && 'value' in query_data.local)
+
+                    if(foundE == 0 && has_edge)
+                    {
+                        if (styles[link_style] != undefined)
+		    		    	data['edges'].push({'data': {"id": link_id, "name":link_label, "source": link_source, "target": link_target},'classes': styles[link_style]['name']});
+		    			else
+                            data['edges'].push({'data': {"id": link_id, "name":link_label, "source": link_source, "target": link_target}});
+                    }
+
+}
+	
+	                // ARCHETYPE
+	                
+	                if ('value' in query_data.global && 'value' in query_data.local)
 					{		    			
+		    			link_style = 'http://contextus.net/ontology/ontomedia/core/expression#shadow-of';
+		    			link_source = query_data.local.value;
+		    			link_target = query_data.global.value;
+		    			has_edge = true;
+		    			link_label = 'shadow of';
+		    			
 		    			var link_id = "link_" + query_data.local.value + '_' 
 		    			
 		    			if ('value' in query_data.global)
-		    			    link_id += query_data.global.value + '_'
-		    			
-		    			if ('value' in query_data.bond_type)    
-		    			    link_id += query_data.bond_type.value;
-		    			
-		    			if (styles['http://contextus.net/ontology/ontomedia/core/expression#shadow-of'] != undefined)
-		    		    	data['edges'].push({'data': {"id": link_id, "source": query_data.local.value, "target": query_data.global.value}, 'classes': styles['http://contextus.net/ontology/ontomedia/core/expression#shadow-of']['name']});
-		    			else
-		    			    data['edges'].push({'data': {"id": link_id, "source": query_data.local.value, "target": query_data.global.value}});
-		    			
-		    	        
-		    		}	
-		    		
-		    		
-		    		
+		    			    link_id += query_data.global.value + '_Shadow'
 
+		    			//if ('value' in query_data.bond_type)    
+		    			//    link_id += query_data.bond_type.value;
+		    			
+/*		    			
+		    			if (styles['http://contextus.net/ontology/ontomedia/core/expression#shadow-of'] != undefined)
+		    		    	data['edges'].push({'data': {"id": link_id, "name":"Shadow Of", "source": query_data.local.value, "target": query_data.global.value}, 'classes': styles['http://contextus.net/ontology/ontomedia/core/expression#shadow-of']['name']});
+		    			else
+		    			    data['edges'].push({'data': {"id": link_id, "source": query_data.local.value, "target": query_data.global.value}}); 
+*/		    			
+		    	        
+		    		
+		    		var foundE = 0;
+		    		
+		    		
+		    		for (i = 0; i < data['edges'].length; i++)
+		    		{
+		    			if (data['edges'][i]['id'] == link_id) foundE = 1;
+
+		    		}
+
+                    if(foundE == 0 && has_edge)
+                    {
+                        if (styles[link_style] != undefined)
+		    		    	data['edges'].push({'data': {"id": link_id, "name":link_label, "source": link_source, "target": link_target},'classes': styles[link_style]['name']});
+		    			else
+                            data['edges'].push({'data': {"id": link_id, "name":link_label, "source": link_source, "target": link_target}});
+                    }
+
+		    		}	
 
 
 	    			    		
